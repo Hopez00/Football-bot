@@ -6,12 +6,13 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 from supabase import create_client, Client
 
-TELEGRAM_TOKEN = "8932539574:AAE3x0LF7RFc_gnQTWukCOJrUBXV-Po4i2w"
-FOOTBALL_API_KEY = "e08e7153946d4aaf85372ea7368b9b8d"
-
-# Initialize Supabase Client
+# Load sensitive keys safely from Environment Variables
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+FOOTBALL_API_KEY = os.environ.get("FOOTBALL_API_KEY")
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+
+# Initialize Supabase Client
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 
 # Strict filter focusing on leagues with stable statistical scoring metrics
@@ -152,3 +153,4 @@ if __name__ == "__main__":
     
     print("Professional analytics bot operational with cloud database logging.")
     app.run_polling()
+    
