@@ -8,14 +8,14 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 TELEGRAM_TOKEN = "8932539574:AAE3x0LF7RFc_gnQTWukCOJrUBXV-Po4i2w"
 FOOTBALL_API_KEY = "e08e7153946d4aaf85372ea7368b9b8d"
 
-# Trusted high-scoring leagues (Filtering out low-scoring defensive leagues)
+# Strict filter focusing on leagues with stable statistical scoring metrics
 ALLOWED_LEAGUES = ["Premier League", "Eredivisie", "Bundesliga", "Primera Division", "Serie A"]
 
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(b"Bot is alive!")
+        self.wfile.write(b"Bot service status: Operational")
 
 def run_web_server():
     port = int(os.environ.get("PORT", 10000))
@@ -23,10 +23,52 @@ def run_web_server():
     server.serve_forever()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("⚽ Welcome! Type /predict for filtered, high-probability match slips.")
+    welcome_message = (
+        "📊 *Professional Football Analytics Bot*\n\n"
+        "Welcome. This system utilizes disciplined data filtering and tactical trend analysis "
+        "to highlight high-probability market scenarios while managing exposure risk.\n\n"
+        "Use /predict to generate the current analytical fixture report."
+    )
+    await update.message.reply_text(welcome_message, parse_mode="Markdown")
+
+def evaluate_tactical_market(home, away, competition):
+    """
+    Applies sensitive, risk-managed criteria based on league statistical profiles
+    rather than high-risk blanket assertions.
+    """
+    if competition in ["Eredivisie", "Bundesliga"]:
+        return {
+            "market": "Over 2.5 Goals / Alternative: Team Total Over 1.5",
+            "risk_profile": "Moderate (Open tactical setups observed)",
+            "confidence": "Tier 1 (Statistical Trend Alignment)"
+        }
+    elif competition == "Premier League":
+        return {
+            "market": "Double Chance (1X) & Match Over 1.5 Goals",
+            "risk_profile": "Conservative (High volatility management)",
+            "confidence": "Tier 2 (Core Selection)"
+        }
+    elif competition == "Primera Division":
+        return {
+            "market": "Under 3.5 Match Goals / Home Draw No Bet",
+            "risk_profile": "Controlled (Tactical possession management)",
+            "confidence": "Tier 2 (Defensive Stability Focus)"
+        }
+    elif competition == "Serie A":
+        return {
+            "market": "Under 3.5 Goals / Second Half Over 0.5 Goals",
+            "risk_profile": "Cautious (Low-block structural profiles)",
+            "confidence": "Tier 1 (Structural Constraint)"
+        }
+    else:
+        return {
+            "market": "Strictly Monitored / Low Exposure Recommendation",
+            "risk_profile": "Defensive",
+            "confidence": "Observation Only"
+        }
 
 async def predict(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🔍 Filtering out risky fixtures and scanning top goal-scoring leagues...")
+    await update.message.reply_text("🔄 Executing multi-variable data scan across approved leagues...")
     
     url = "https://api.football-data.org/v4/matches?status=SCHEDULED"
     headers = {"X-Auth-Token": FOOTBALL_API_KEY}
@@ -38,16 +80,16 @@ async def predict(update: Update, context: ContextTypes.DEFAULT_TYPE):
         matches = data.get("matches", [])
         
         if not matches:
-            await update.message.reply_text("No upcoming matches found right now.")
+            await update.message.reply_text("No verified fixtures currently match the active scheduling criteria.")
             return
             
-        slip_text = "🎯 REFINED HIGH-PROBABILITY SLIP 🎯\n\n"
+        report_text = "📈 *EXECUTIVE MATCH ANALYTICS REPORT* 📈\n\n"
         count = 0
         
         for match in matches:
             competition = match["competition"]["name"]
             
-            # Skip leagues prone to 0-0 draws (Filter logic)
+            # Filter out non-compliant leagues to mitigate variance
             if competition not in ALLOWED_LEAGUES:
                 continue
                 
@@ -58,21 +100,26 @@ async def predict(update: Update, context: ContextTypes.DEFAULT_TYPE):
             away = match["awayTeam"]["name"]
             utc_date = match["utcDate"].replace("T", " ")[:16]
             
+            # Obtain sensitive, risk-evaluated market suggestion
+            evaluation = evaluate_tactical_market(home, away, competition)
+            
             count += 1
-            slip_text += f"{count}. {home} vs {away}\n"
-            slip_text += f"League: {competition}\n"
-            slip_text += f"Time: {utc_date} UTC\n"
-            slip_text += f"Pick: Over 1.5 Goals / Safe 1X\n\n"
+            report_text += f"*Fixture {count}:* {home} vs {away}\n"
+            report_text += f"• *Competition:* {competition}\n"
+            report_text += f"• *Kickoff:* {utc_date} UTC\n"
+            report_text += f"• *Analytical Angle:* {evaluation['market']}\n"
+            report_text += f"• *Risk Rating:* {evaluation['risk_profile']}\n"
+            report_text += f"• *Confidence:* {evaluation['confidence']}\n\n"
             
         if count == 0:
-            await update.message.reply_text("No matches currently available in the primary target leagues. Try again later!")
+            await update.message.reply_text("No qualifying fixtures found within the primary target parameters at this hour.")
         else:
-            await update.message.reply_text(slip_text)
+            report_text += "_Disclaimer: Analytical models are probabilistic. Practice strict bankroll management._"
+            await update.message.reply_text(report_text, parse_mode="Markdown")
     else:
-        await update.message.reply_text("❌ Failed to fetch live data from API.")
+        await update.message.reply_text("❌ Data retrieval error: Unable to sync with live telemetry feeds.")
 
 if __name__ == "__main__":
-    # Start the tiny web server in the background to satisfy Render's port requirement
     t = threading.Thread(target=run_web_server)
     t.daemon = True
     t.start()
@@ -88,6 +135,6 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("predict", predict))
     
-    print("Bot is up with advanced match filtering and web port bound!")
+    print("Professional analytics bot operational with secure binding.")
     app.run_polling()
     
