@@ -30,7 +30,7 @@ class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(b"Bot service status: Operational with Interactive Menus & Cloud Logging")
+        self.wfile.write(b"Bot service status: Operational with Tighter Tactical Filters & Cloud Logging")
 
 def run_web_server():
     port = int(os.environ.get("PORT", 10000))
@@ -59,7 +59,6 @@ async def user_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     try:
-        # Query Supabase for user interaction count
         response = supabase.table("bot_logs").select("*", count="exact").eq("user_id", user_id).execute()
         total_requests = response.count if hasattr(response, 'count') and response.count is not None else len(response.data)
         
@@ -95,10 +94,11 @@ def evaluate_tactical_market(home, away, competition):
             "confidence": "Tier 2 (Defensive Stability Focus)"
         }
     elif competition == "Serie A":
+        # Tighter constraint updated to avoid second-half shootouts
         return {
-            "market": "Under 3.5 Goals / Second Half Over 0.5 Goals",
-            "risk_profile": "Cautious (Low-block structural profiles)",
-            "confidence": "Tier 1 (Structural Constraint)"
+            "market": "First Half Under 1.5 Goals / Team Total Under 2.5",
+            "risk_profile": "Cautious (Strict Low-Block Containment)",
+            "confidence": "Tier 1 (Enhanced Structural Constraint)"
         }
     else:
         return {
@@ -165,14 +165,13 @@ async def predict(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     supabase.table("bot_logs").insert({
                         "user_id": user_id,
                         "username": username,
-                        "prediction_summary": f"Generated {count} fixtures report successfully."
+                        "prediction_summary": f"Generated {count} fixtures report with updated tighter rules."
                     }).execute()
                 except Exception as e:
                     print(f"Database logging error: {e}")
     else:
         await update.message.reply_text("❌ Data retrieval error: Unable to sync with live telemetry feeds.", reply_markup=get_main_keyboard())
 
-# Handle button clicks as text messages
 async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     if text == "📈 Get Predictions":
@@ -196,12 +195,11 @@ if __name__ == "__main__":
         .build()
     )
     
-    # Register command and message handlers
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("predict", predict))
     app.add_handler(CommandHandler("stats", user_stats))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_button_click))
     
-    print("Professional analytics bot operational with interactive keyboards and cloud logging.")
+    print("Professional analytics bot operational with updated tactical rules.")
     app.run_polling()
-         
+    
