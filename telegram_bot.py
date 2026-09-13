@@ -1,4 +1,7 @@
+import os
 import requests
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import threading
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
@@ -7,6 +10,17 @@ FOOTBALL_API_KEY = "e08e7153946d4aaf85372ea7368b9b8d"
 
 # Trusted high-scoring leagues (Filtering out low-scoring defensive leagues)
 ALLOWED_LEAGUES = ["Premier League", "Eredivisie", "Bundesliga", "Primera Division", "Serie A"]
+
+class SimpleHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is alive!")
+
+def run_web_server():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(("0.0.0.0", port), SimpleHandler)
+    server.serve_forever()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("⚽ Welcome! Type /predict for filtered, high-probability match slips.")
@@ -55,9 +69,14 @@ async def predict(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await update.message.reply_text(slip_text)
     else:
-    	await update.message.reply_text("❌ Failed to fetch live data from API.")
+        await update.message.reply_text("❌ Failed to fetch live data from API.")
 
 if __name__ == "__main__":
+    # Start the tiny web server in the background to satisfy Render's port requirement
+    t = threading.Thread(target=run_web_server)
+    t.daemon = True
+    t.start()
+
     app = (
         ApplicationBuilder()
         .token(TELEGRAM_TOKEN)
@@ -69,6 +88,6 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("predict", predict))
     
-    print("Bot is up with advanced match filtering!")
+    print("Bot is up with advanced match filtering and web port bound!")
     app.run_polling()
-        
+    
