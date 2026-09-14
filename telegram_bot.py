@@ -30,7 +30,7 @@ class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(b"Bot service status: Operational with Tighter Tactical Filters & Cloud Logging")
+        self.wfile.write(b"Bot service status: Operational with Optimized Goal-Line Filters & Cloud Logging")
 
 def run_web_server():
     port = int(os.environ.get("PORT", 10000))
@@ -88,13 +88,13 @@ def evaluate_tactical_market(home, away, competition):
             "confidence": "Tier 2 (Core Selection)"
         }
     elif competition == "Primera Division":
+        # Updated to pure goal-line focus, removing side-bet variance
         return {
-            "market": "Under 3.5 Match Goals / Home Draw No Bet",
-            "risk_profile": "Controlled (Tactical possession management)",
-            "confidence": "Tier 2 (Defensive Stability Focus)"
+            "market": "Under 2.5 Match Goals / Strict Possession Constraint",
+            "risk_profile": "Controlled (Defensive block synchronization)",
+            "confidence": "Tier 1 (Goal-Line Alignment)"
         }
     elif competition == "Serie A":
-        # Tighter constraint updated to avoid second-half shootouts
         return {
             "market": "First Half Under 1.5 Goals / Team Total Under 2.5",
             "risk_profile": "Cautious (Strict Low-Block Containment)",
@@ -112,7 +112,7 @@ async def predict(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(user.id)
     username = user.username or user.first_name or "Unknown"
 
-    await update.message.reply_text("🔄 Executing multi-variable data scan across approved leagues...", reply_markup=get_main_keyboard())
+    await update.message.reply_text("🔄 Executing multi-variable data scan across optimized leagues...", reply_markup=get_main_keyboard())
     
     url = "https://api.football-data.org/v4/matches?status=SCHEDULED"
     headers = {"X-Auth-Token": FOOTBALL_API_KEY}
@@ -165,7 +165,7 @@ async def predict(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     supabase.table("bot_logs").insert({
                         "user_id": user_id,
                         "username": username,
-                        "prediction_summary": f"Generated {count} fixtures report with updated tighter rules."
+                        "prediction_summary": f"Generated {count} fixtures report with optimized La Liga goal-lines."
                     }).execute()
                 except Exception as e:
                     print(f"Database logging error: {e}")
@@ -200,6 +200,5 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("stats", user_stats))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_button_click))
     
-    print("Professional analytics bot operational with updated tactical rules.")
+    print("Professional analytics bot operational with optimized goal-line rules.")
     app.run_polling()
-    
